@@ -4,11 +4,13 @@ from os.path import isfile
 import re
 import tensorflow.compat.v1 as tf
 import numpy as np
+import matplotlib.pyplot as plt
+import sys
 
 tf.disable_eager_execution()
 
 MAX_DOC_LENGTH = 500
-NUM_CLASSES = 4
+NUM_CLASSES = 20
 unknown_ID = 1
 padding_ID = 0
 
@@ -282,6 +284,13 @@ def train_and_evaluate_RNN():
     lstm_size=50,
     batch_size=50
   )
+  rnn = RNN(
+    vocab_size=vocab_size,
+    embedding_size=embedding_size,
+    lstm_size=50,
+    batch_size=50
+  )
+
   predicted_labels, loss = rnn.build_graph()
   train_op = rnn.trainer(loss=loss, learning_rate=0.01)
 
@@ -297,11 +306,10 @@ def train_and_evaluate_RNN():
     )
 
     step = 0
-    MAX_STEP = 100 ** 2
+    MAX_STEP = 20000
 
     sess.run(tf.global_variables_initializer())
     while (step < MAX_STEP):
-      print(step)
       next_train_batch = train_data_reader.next_batch()
       train_data, train_labels, train_sentence_lengths, train_final_tokens = next_train_batch
       plabels_eval, loss_eval, _ = sess.run(
@@ -337,11 +345,25 @@ def train_and_evaluate_RNN():
 
           if test_data_reader._batch_id == 0:
             break
-        print('Epoch: ', train_data_reader._num_epoch)
-        print('Accuracy on test data: ', num_true_preds * 100 / len(test_data_reader._data))
 
+        print('Epoch: ', train_data_reader._num_epoch)
+        accuracy = num_true_preds * 100 / len(test_data_reader._data)
+        print('Accuracy on test data: ', accuracy)
+
+def plot(x,y):
+  # plot
+  fig, ax = plt.subplots()
+  ax.plot(x,y, 'r')
+  ax.set_xlabel("epoch")
+  ax.set_ylabel("Accuracy")
+  ax.set_title("RNN", fontsize=16)
+  ax.legend(labels=['accuracy'])
+  ax.grid(True)
+  plt.show()
 
 if __name__ == '__main__':
+  # log = open("rnn_20_classes.log", "a")
+  # sys.stdout = log
   # gen_data_and_vocab()
   # encode_data('./datasets/w2v/20news-train-raw.txt', './datasets/w2v/vocab-raw.txt')
   # encode_data('./datasets/w2v/20news-test-raw.txt', './datasets/w2v/vocab-raw.txt')

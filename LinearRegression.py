@@ -1,10 +1,7 @@
 import pandas as pd
 import numpy as np
-
-# df = pd.read_fwf('x28.txt', names = ['I', 'A1', 'A2', 'A3', 'A4', 'A5',
-#                                      'A6', 'A7', 'A8', 'A9', 'A10', 'A11',
-#                                      'A12', 'A13', 'A14', 'A15', 'B'] )
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 def get_data(a):
     df = pd.read_fwf(a, names=['I', 'A1', 'A2', 'A3', 'A4', 'A5',
                                        'A6', 'A7', 'A8', 'A9', 'A10', 'A11',
@@ -99,21 +96,39 @@ class RidgeRegression:
         best_LAMBDA, minimum_RSS = range_scan(best_LAMBDA= best_LAMBDA, minimum_RSS= minimum_RSS, LAMBDA_values= LAMBDA_values)
         return best_LAMBDA
 
+def plot_coef_labda(max_lambda, step):
+    feature_names = ['I', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14','A15']
+    ridge_df = pd.DataFrame({'variable': feature_names})
+    for LAMBDA in np.arange(0, max_lambda, step):
+        W_learned = ridge_regression.fit(X_train=X_train, Y_train=Y_train, LAMBDA=LAMBDA)
+        var_name = LAMBDA
+        ridge_df[var_name] = W_learned
+    ridge_df = ridge_df.set_index('variable').T
+
+    # plot
+    fig, ax = plt.subplots()
+    ax.plot(ridge_df)
+    ax.axhline(y=0, color='black', linestyle='--')
+    ax.set_xlabel("Lambda")
+    ax.set_ylabel("Beta Estimate")
+    ax.set_title("Ridge Regression Trace", fontsize=16)
+    ax.legend(labels=['W0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'A11', 'A12', 'A13', 'A14', 'A15'], loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.grid(True)
+    plt.show()
+
 if __name__ == '__main__':
-    # X = df.iloc[:, 1:16]
-    # Y = df['B']
     X, Y = get_data('x28.txt')
     X = normalizer_and_add_ones(X)
     X_train, Y_train = X[:50], Y[:50]
     X_test, Y_test = X[50:], Y[50:]
 
     ridge_regression = RidgeRegression()
-    best_LAMBDA = ridge_regression.get_the_best_LAMBDA(X_train, Y_train)
-    print('Best LAMBDA: ', best_LAMBDA)
-    W_learned = ridge_regression.fit(X_train= X_train, Y_train= Y_train, LAMBDA= best_LAMBDA)
-    Y_predicted = ridge_regression.predict(W= W_learned, X_new= X_test)
-
-    print(ridge_regression.compute_Rss(Y_new= Y_test, Y_predicted= Y_predicted))
+    # best_LAMBDA = ridge_regression.get_the_best_LAMBDA(X_train, Y_train)
+    # print('Best LAMBDA: ', best_LAMBDA)
+    # W_learned = ridge_regression.fit(X_train= X_train, Y_train= Y_train, LAMBDA= best_LAMBDA)
+    # Y_predicted = ridge_regression.predict(W= W_learned, X_new= X_test)
+    # print(ridge_regression.compute_Rss(Y_new= Y_test, Y_predicted= Y_predicted))
+    plot_coef_labda(1, 0.005)
 
 
 
